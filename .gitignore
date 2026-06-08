@@ -1,15 +1,15 @@
 # Environnement virtuel
 backend/venv/
+venv/
 
 # Secrets
 backend/.env
+.env
 
 # Python
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
-.Python
 
 # Base de données locale
 *.db
@@ -17,28 +17,3 @@ __pycache__/
 
 # VS Code
 .vscode/
-venv/
-env/
-
-# Base de données
-*.db
-
-# Variables d'environnement
-.env
-.server_keys
-
-# Tests
-.pytest_cache/
-.coverage
-
-# VS Code
-.vscode/
-
-# Documents et spécifications
-senverbalis_partie2.docx
-ARCHITECTURE_COMPLETE.md
-design_notes.md
-docker_design.md
-Partie2.pdf
-Presentation_Charte1.pdf
-BEST_PRACTICES.md
