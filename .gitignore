@@ -1,0 +1,19 @@
+# Environnement virtuel
+backend/venv/
+
+# Secrets
+backend/.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Base de données locale
+*.db
+*.sqlite3
+
+# VS Code
+.vscode/
