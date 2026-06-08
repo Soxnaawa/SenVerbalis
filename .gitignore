@@ -17,3 +17,28 @@ __pycache__/
 
 # VS Code
 .vscode/
+venv/
+env/
+
+# Base de données
+*.db
+
+# Variables d'environnement
+.env
+.server_keys
+
+# Tests
+.pytest_cache/
+.coverage
+
+# VS Code
+.vscode/
+
+# Documents et spécifications
+senverbalis_partie2.docx
+ARCHITECTURE_COMPLETE.md
+design_notes.md
+docker_design.md
+Partie2.pdf
+Presentation_Charte1.pdf
+BEST_PRACTICES.md
