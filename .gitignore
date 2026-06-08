@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+
+# Base de données
+*.db
+
+# Variables d'environnement
+.env
+.server_keys
+
+# Tests
+.pytest_cache/
+.coverage
+
+# VS Code
+.vscode/
