@@ -3,12 +3,17 @@ from sqlalchemy.orm import Session
 from app.schemas.pv import PVCreate, PVResponse, PVStatutUpdate, PVIntegriteResponse
 from app.crud import pvs as crud_pvs
 
+from app.core.database import SessionLocal
+
 router = APIRouter(prefix="/api/pvs", tags=["PVs"])
 
 
 def get_db():
-    """Dépendance base de données — sera complétée par Anta/Mamadou."""
-    pass
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 @router.post("/", response_model=PVResponse, status_code=status.HTTP_201_CREATED)
@@ -21,7 +26,9 @@ def creer_pv(
     pv = crud_pvs.creer_pv(
         db=db,
         agent_id=agent_id,
-        num_permis=pv_data.num_permis,
+        num_permis_chiffre=pv_data.num_permis_chiffre,
+        iv=pv_data.iv,
+        num_permis_hash=pv_data.num_permis_hash,
         plaque=pv_data.plaque,
         type_infraction=pv_data.type_infraction,
         lieu=pv_data.lieu,
@@ -43,7 +50,7 @@ def tous_les_pvs(db: Session = Depends(get_db)):
 
 
 @router.get("/{pv_id}", response_model=PVResponse)
-def get_pv(pv_id: int, db: Session = Depends(get_db)):
+def get_pv(pv_id: str, db: Session = Depends(get_db)):
     """Retourne un PV par son ID."""
     pv = crud_pvs.get_pv_by_id(db, pv_id)
     if not pv:
@@ -56,7 +63,7 @@ def get_pv(pv_id: int, db: Session = Depends(get_db)):
 
 @router.patch("/{pv_id}/statut", response_model=PVResponse)
 def maj_statut(
-    pv_id: int,
+    pv_id: str,
     statut_data: PVStatutUpdate,
     db: Session = Depends(get_db)
 ):
@@ -71,7 +78,7 @@ def maj_statut(
 
 
 @router.get("/{pv_id}/integrite", response_model=PVIntegriteResponse)
-def verifier_integrite(pv_id: int, db: Session = Depends(get_db)):
+def verifier_integrite(pv_id: str, db: Session = Depends(get_db)):
     """Vérifie l'intégrité d'un PV."""
     integre, message = crud_pvs.verifier_pv(db, pv_id)
     return PVIntegriteResponse(
