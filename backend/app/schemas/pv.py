@@ -26,8 +26,9 @@ class PVResponse(BaseModel):
     statut:             str
     date_creation:      str
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 class PVStatutUpdate(BaseModel):
