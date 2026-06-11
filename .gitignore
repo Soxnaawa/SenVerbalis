@@ -1,19 +1,22 @@
-# Environnement virtuel
-backend/venv/
-venv/
-
-# Secrets
-backend/.env
-.env
-
 # Python
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+.Python
+venv/
+env/
 
-# Base de données locale
+# Base de données
 *.db
-*.sqlite3
+
+# Variables d'environnement
+.env
+.server_keys
+
+# Tests
+.pytest_cache/
+.coverage
 
 # VS Code
 .vscode/

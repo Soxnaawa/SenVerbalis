@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -12,6 +13,9 @@ class Settings(BaseSettings):
 
     @property
     def DATABASE_URL(self) -> str:
+        env_url = os.environ.get("DATABASE_URL")
+        if env_url:
+            return env_url
         return (
             f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
