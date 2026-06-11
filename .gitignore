@@ -22,4 +22,5 @@ env/
 .vscode/
 
 # Documents et spécifications
-docs/
+docs/*.pdf
+docs/*.docx
