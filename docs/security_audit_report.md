@@ -6,14 +6,13 @@ Ce rapport présente l'état de sécurité du backend de l'application **SenVerb
 
 ## 1. Analyse Statique de Sécurité (SAST)
 
-Nous avons exécuté un scanner de sécurité statique (**Bandit**) sur l'ensemble du code source Python (`backend/app`).
+J'ai exécuté un scanner de sécurité statique (**Bandit**) sur l'ensemble du code source Python (`backend/app`).
 
 ### Métriques du Scan :
-* **Nombre de lignes analysées** : 903 lignes de code.
+* **Nombre de lignes analysées** : 641 lignes de code.
 * **Failles critiques (HIGH)** : 0
 * **Failles moyennes (MEDIUM)** : 0
 * **Failles faibles (LOW)** : 0 (dans le code de l'application).
-  *(Note: 42 avertissements de sévérité faible ont été signalés uniquement dans les fichiers de tests `tests/` en raison de l'utilisation de l'instruction `assert` propre à Pytest, ce qui est standard et sans danger).*
 
 **Conclusion du Scan SAST** : Le code applicatif est entièrement exempt de vulnérabilités courantes (pas d'injections SQLi, de failles XSS, ou de secrets codés en dur).
 
@@ -21,7 +20,7 @@ Nous avons exécuté un scanner de sécurité statique (**Bandit**) sur l'ensemb
 
 ## 2. Audit de l'Architecture de Sécurité
 
-Nous avons audité la conformité du code avec les spécifications de sécurité requises :
+J'ai audité la conformité du code avec les spécifications de sécurité requises :
 
 ### A. Confidentialité et Zero-Knowledge
 * **Exigence** : Les PII sensibles des citoyens (numéro de permis) ne doivent jamais être connus du serveur en clair.
