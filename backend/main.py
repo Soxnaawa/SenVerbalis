@@ -4,7 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
 from app.db import Base, engine
+from app.models.user import User
+from app.models.pv import PV
+from app.models.audit_log import AuditLog
+
 from app.api.auth import router as auth_router
+from app.api.pvs import router as pvs_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -29,6 +34,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "Erreur interne du serveur."})
 
 app.include_router(auth_router)
+app.include_router(pvs_router)
 
 @app.get("/health")
 def health():

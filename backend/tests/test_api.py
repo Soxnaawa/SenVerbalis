@@ -14,7 +14,7 @@ os.environ["DB_USER"] = "test"
 os.environ["DB_PASSWORD"] = "test"
 os.environ["JWT_SECRET_KEY"] = "test"
 
-from app.main import app
+from main import app
 from app.db import SessionLocal, engine, Base, get_db
 from app.models.user import User, Role
 from app.core.dependencies import get_current_user
