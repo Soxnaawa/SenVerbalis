@@ -22,10 +22,4 @@ env/
 .vscode/
 
 # Documents et spécifications
-senverbalis_partie2.docx
-ARCHITECTURE_COMPLETE.md
-design_notes.md
-docker_design.md
-Partie2.pdf
-Presentation_Charte1.pdf
-BEST_PRACTICES.md
+docs/
