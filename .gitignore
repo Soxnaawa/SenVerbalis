@@ -24,3 +24,6 @@ env/
 # Documents et spécifications
 docs/*.pdf
 docs/*.docx
+docs/*.txt
+docs/*.md
+!docs/security_audit_report.md
