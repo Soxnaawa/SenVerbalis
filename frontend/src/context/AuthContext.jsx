@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef } from 'react';
+import { createContext, useState, useEffect, useRef, useCallback } from 'react';
 import { api, setClientToken } from '../api/client';
 
 export const AuthContext = createContext(null);
@@ -15,8 +15,32 @@ export const AuthProvider = ({ children }) => {
 
   const inactivityTimerRef = useRef(null);
 
+  const logout = useCallback(async () => {
+    try {
+      if (token) {
+        await api.logout();
+      }
+    } catch (e) {
+      console.error("Logout API call error:", e);
+    } finally {
+      // Clear memory states
+      setToken(null);
+      setClientToken(null);
+      setUser(null);
+      setRole(null);
+      
+      // Clear timers
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+
+      // Hard redirect to clear React state & cache completely (anti-XSS / session pollution)
+      window.location.href = '/login';
+    }
+  }, [token]);
+
   // Initialize and clear inactivity timer
-  const resetInactivityTimer = () => {
+  const resetInactivityTimer = useCallback(() => {
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
     }
@@ -28,7 +52,7 @@ export const AuthProvider = ({ children }) => {
         logout();
       }, INACTIVITY_TIMEOUT_MS);
     }
-  };
+  }, [token, logout]);
 
   // Event listeners to detect activity
   useEffect(() => {
@@ -53,7 +77,7 @@ export const AuthProvider = ({ children }) => {
         clearTimeout(inactivityTimerRef.current);
       }
     };
-  }, [token]);
+  }, [token, resetInactivityTimer]);
 
   // Handle API unauthorized event (401 interceptor)
   useEffect(() => {
@@ -65,7 +89,7 @@ export const AuthProvider = ({ children }) => {
     return () => {
       window.removeEventListener('unauthorized', handleUnauthorized);
     };
-  }, []);
+  }, [logout]);
 
   // Check if token exists on load (e.g. from session memory)
   // For standard React SPA, we check profile on reload, but since token is in memory only,
@@ -74,7 +98,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (username, password) => {
+  const login = useCallback(async (username, password) => {
     setError(null);
     try {
       const authData = await api.login(username, password);
@@ -94,31 +118,7 @@ export const AuthProvider = ({ children }) => {
       setError(err.message || "Erreur de connexion.");
       throw err;
     }
-  };
-
-  const logout = async () => {
-    try {
-      if (token) {
-        await api.logout();
-      }
-    } catch (e) {
-      console.error("Logout API call error:", e);
-    } finally {
-      // Clear memory states
-      setToken(null);
-      setClientToken(null);
-      setUser(null);
-      setRole(null);
-      
-      // Clear timers
-      if (inactivityTimerRef.current) {
-        clearTimeout(inactivityTimerRef.current);
-      }
-
-      // Hard redirect to clear React state & cache completely (anti-XSS / session pollution)
-      window.location.href = '/login';
-    }
-  };
+  }, []);
 
   const value = {
     user,

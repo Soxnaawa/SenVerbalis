@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { api } from '../../api/client';
 import { encryptLicense, hashLicense } from '../../crypto/aes';
 import { PlusCircle, ShieldAlert, CheckCircle, FileText, MapPin, CreditCard } from 'lucide-react';

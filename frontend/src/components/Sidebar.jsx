@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { FileText, PlusCircle, Shield, LogOut, Users, UserPlus, Search } from 'lucide-react';
+import { FileText, PlusCircle, LogOut, Users, UserPlus } from 'lucide-react';
 
 const Sidebar = ({ currentRoute }) => {
   const { user, role, logout } = useContext(AuthContext);

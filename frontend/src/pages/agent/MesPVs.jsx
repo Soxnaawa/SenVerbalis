@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../api/client';
 import { decryptLicense } from '../../crypto/aes';
 import StatusBadge from '../../components/StatusBadge';
@@ -12,7 +12,7 @@ const MesPVs = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchPVs = async () => {
+  const fetchPVs = useCallback(async () => {
     setError('');
     try {
       const data = await api.getMesPVs();
@@ -26,7 +26,7 @@ const MesPVs = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
   const decryptAllLicenses = async (pvList) => {
     const decMap = {};
@@ -41,7 +41,7 @@ const MesPVs = () => {
 
   useEffect(() => {
     fetchPVs();
-  }, []);
+  }, [fetchPVs]);
 
   const handleRefresh = () => {
     setRefreshing(true);

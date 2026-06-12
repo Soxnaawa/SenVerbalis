@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.schemas.pv import PVCreate, PVResponse, PVStatutUpdate, PVIntegriteResponse
 from app.crud import pvs as crud_pvs
@@ -71,6 +72,40 @@ def tous_les_pvs(
 ):
     """Retourne tous les PV. Réservé au superviseur."""
     return crud_pvs.get_tous_pvs(db)
+
+
+@router.get(
+    "/recherche",
+    response_model=list[PVResponse],
+    dependencies=[Depends(require_role(Role.SUPERVISEUR))]
+)
+def rechercher_pvs(
+    request: Request,
+    plaque: Optional[str] = Query(None, min_length=1, max_length=20),
+    type_infraction: Optional[str] = Query(None, min_length=1, max_length=100),
+    lieu: Optional[str] = Query(None, min_length=1, max_length=200),
+    statut: Optional[str] = Query(None, pattern="^(en_attente|reglee|contestee)$"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Recherche multi-critères de PV. Réservé au superviseur (EF-09)."""
+    results = crud_pvs.rechercher_pvs(
+        db,
+        plaque=plaque,
+        type_infraction=type_infraction,
+        lieu=lieu,
+        statut=statut
+    )
+    ip = request.client.host if request.client else "unknown"
+    audit_crud.log(
+        db,
+        actor=current_user.username,
+        action="PV_RECHERCHE",
+        target="recherche",
+        detail=f"plaque={plaque}, type={type_infraction}, lieu={lieu}, statut={statut} → {len(results)} résultat(s)",
+        ip_address=ip
+    )
+    return results
 
 
 @router.get(

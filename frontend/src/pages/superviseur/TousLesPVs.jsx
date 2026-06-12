@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../api/client';
 import { decryptLicense } from '../../crypto/aes';
 import StatusBadge from '../../components/StatusBadge';
@@ -9,12 +9,9 @@ import {
   KeyRound, 
   ShieldAlert, 
   ShieldCheck, 
-  FileCheck, 
   AlertOctagon, 
   BadgeCheck, 
-  TrendingUp, 
-  Clock, 
-  XOctagon 
+  Clock 
 } from 'lucide-react';
 
 const TousLesPVs = () => {
@@ -37,7 +34,18 @@ const TousLesPVs = () => {
     setTimeout(() => setNotification(null), 5000);
   };
 
-  const fetchPVs = async () => {
+  const decryptAllLicenses = useCallback(async (pvList) => {
+    const decMap = {};
+    for (const pv of pvList) {
+      if (pv.num_permis_chiffre && pv.iv) {
+        const clearLicense = await decryptLicense(pv.num_permis_chiffre, pv.iv);
+        decMap[pv.id] = clearLicense;
+      }
+    }
+    setDecryptedLicenses(prev => ({ ...prev, ...decMap }));
+  }, []);
+
+  const fetchPVs = useCallback(async () => {
     setError('');
     try {
       const data = await api.getTousLesPVs();
@@ -51,22 +59,11 @@ const TousLesPVs = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
-
-  const decryptAllLicenses = async (pvList) => {
-    const decMap = {};
-    for (const pv of pvList) {
-      if (pv.num_permis_chiffre && pv.iv) {
-        const clearLicense = await decryptLicense(pv.num_permis_chiffre, pv.iv);
-        decMap[pv.id] = clearLicense;
-      }
-    }
-    setDecryptedLicenses(prev => ({ ...prev, ...decMap }));
-  };
+  }, [decryptAllLicenses]);
 
   useEffect(() => {
     fetchPVs();
-  }, []);
+  }, [fetchPVs]);
 
   const handleRefresh = () => {
     setRefreshing(true);

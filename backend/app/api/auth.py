@@ -1,5 +1,7 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -15,7 +17,11 @@ logger = logging.getLogger("senverbalis.api.auth")
 router = APIRouter(prefix="/api/auth", tags=["Authentification"])
 
 
+limiter = Limiter(key_func=get_remote_address)
+
+
 @router.post("/login", response_model=TokenResponse)
+@limiter.limit("5/minute")
 def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
     ip = request.client.host if request.client else "unknown"
     user = user_crud.get_by_username(db, payload.username)

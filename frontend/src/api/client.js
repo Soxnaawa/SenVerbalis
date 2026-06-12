@@ -115,6 +115,15 @@ export const api = {
     return request(`/api/pvs/${id}/integrite`);
   },
 
+  recherchePVs: async ({ plaque, type_infraction, lieu, statut } = {}) => {
+    const params = new URLSearchParams();
+    if (plaque) params.append("plaque", plaque);
+    if (type_infraction) params.append("type_infraction", type_infraction);
+    if (lieu) params.append("lieu", lieu);
+    if (statut) params.append("statut", statut);
+    return request(`/api/pvs/recherche?${params.toString()}`);
+  },
+
   // Admin User management
   getUsers: async () => {
     return request("/api/auth/users");
