@@ -65,6 +65,7 @@ def setup_db():
     
     yield
     Base.metadata.drop_all(bind=engine)
+    engine.dispose()
     
     # Nettoyer le fichier SQLite de test après chaque test
     if os.path.exists("./test_temp.db"):
@@ -142,3 +143,40 @@ def test_api_scenario_complet():
     assert response_int_2.status_code == 200
     integrite_2 = response_int_2.json()
     assert integrite_2["integre"] is True
+
+
+def test_security_headers():
+    response = client.get("/health")
+    assert response.status_code == 200
+    
+    headers = response.headers
+    
+    # 1. Content-Security-Policy (CSP)
+    assert "content-security-policy" in headers
+    csp = headers["content-security-policy"]
+    assert "default-src 'self'" in csp
+    assert "script-src 'self'" in csp
+    
+    # 2. X-Frame-Options
+    assert headers.get("x-frame-options") == "DENY"
+    
+    # 3. X-Content-Type-Options
+    assert headers.get("x-content-type-options") == "nosniff"
+    
+    # 4. X-XSS-Protection
+    assert headers.get("x-xss-protection") == "1; mode=block"
+    
+    # 5. Referrer-Policy
+    assert headers.get("referrer-policy") == "strict-origin-when-cross-origin"
+    
+    # 6. Permissions-Policy
+    assert "permissions-policy" in headers
+
+
+def test_rate_limiting_login():
+    payload = {"username": "bad_user", "password": "wrong_password"}
+    # Hit login route multiple times. Limit is 5/minute.
+    responses = [client.post("/api/auth/login", json=payload) for _ in range(7)]
+    status_codes = [r.status_code for r in responses]
+    assert 429 in status_codes
+
