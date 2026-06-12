@@ -36,7 +36,7 @@ async function request(endpoint, options = {}) {
     try {
       const errData = await response.json();
       errorDetail = errData.detail || errorDetail;
-    } catch (e) {
+    } catch {
       // Not JSON
     }
     throw new Error(errorDetail);
@@ -49,7 +49,7 @@ async function request(endpoint, options = {}) {
 
   try {
     return await response.json();
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -70,7 +70,7 @@ export const api = {
       try {
         const errData = await response.json();
         errorDetail = errData.detail || errorDetail;
-      } catch (e) {}
+      } catch {}
       throw new Error(errorDetail);
     }
     return response.json(); // returns { access_token, token_type }
@@ -131,5 +131,19 @@ export const api = {
     return request(`/api/auth/users/${username}`, {
       method: "DELETE",
     });
+  },
+
+  getCitoyenPVs: async (numPermisHash) => {
+    const response = await fetch(`/api/pvs/citoyen/${numPermisHash}`);
+    if (!response.ok) {
+      let errorDetail = "Impossible de récupérer les infractions.";
+      try {
+        const errData = await response.json();
+        errorDetail = errData.detail || errorDetail;
+      } catch {}
+      throw new Error(errorDetail);
+    }
+    return response.json();
   }
 };
+

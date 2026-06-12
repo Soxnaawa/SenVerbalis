@@ -157,3 +157,16 @@ def verifier_integrite(
         integre=integre,
         message=message
     )
+
+
+@router.get(
+    "/citoyen/{num_permis_hash}",
+    response_model=list[PVResponse]
+)
+def get_pvs_citoyen(
+    num_permis_hash: str,
+    db: Session = Depends(get_db)
+):
+    """Retourne les PV d'un citoyen par le hash de son permis."""
+    return crud_pvs.get_pvs_citoyen(db, num_permis_hash)
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
@@ -10,6 +10,7 @@ import MesPVs from './pages/agent/MesPVs';
 import TousLesPVs from './pages/superviseur/TousLesPVs';
 import ListeUsers from './pages/admin/ListeUsers';
 import CreerUser from './pages/admin/CreerUser';
+import ConsulterPVs from './pages/citoyen/ConsulterPVs';
 
 // Router component that maps the current window.location.hash to the proper components
 const AppRouter = () => {
@@ -81,6 +82,10 @@ const AppRouter = () => {
           </Layout>
         </ProtectedRoute>
       );
+
+    // Citizen Pages
+    case currentRoute === '/citoyen/consulter':
+      return <ConsulterPVs />;
 
     // 3. Admin Pages
     case currentRoute === '/admin/users':

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Shield, Eye, EyeOff, Lock, User } from 'lucide-react';
 
@@ -183,6 +183,26 @@ const Login = () => {
               )}
             </button>
           </form>
+
+          {/* Citizen access link */}
+          <div style={{ marginTop: '24px', textAlign: 'center', borderTop: '1px solid var(--color-border-glass)', paddingTop: '20px' }}>
+            <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+              Vous êtes un citoyen ?{" "}
+              <a 
+                href="#/citoyen/consulter" 
+                style={{ 
+                  color: 'var(--color-accent-yellow)', 
+                  textDecoration: 'none', 
+                  fontWeight: '500',
+                  transition: 'color 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-accent-yellow)'}
+              >
+                Consulter vos infractions
+              </a>
+            </span>
+          </div>
         </div>
       </div>
     </div>
