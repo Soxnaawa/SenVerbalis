@@ -11,9 +11,9 @@ from app.models.user import Role, User
 logger = logging.getLogger("senverbalis.auth")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
+
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db)
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> User:
     erreur = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -34,17 +34,22 @@ def get_current_user(
         raise erreur
     return user
 
+
 def require_role(*roles: Role):
     """RBAC — vérification strictement côté serveur."""
+
     def checker(current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in roles:
             logger.warning(
                 "Accès refusé — '%s' (rôle=%s) vers ressource réservée à %s",
-                current_user.username, current_user.role, roles
+                current_user.username,
+                current_user.role,
+                roles,
             )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Accès interdit : droits insuffisants."
+                detail="Accès interdit : droits insuffisants.",
             )
         return current_user
+
     return checker

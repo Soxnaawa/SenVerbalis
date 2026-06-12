@@ -1,6 +1,4 @@
-from app.core.crypto import (
-    signer_pv, verifier_signature_pv
-)
+from app.core.crypto import signer_pv, verifier_signature_pv
 from datetime import datetime, timezone
 
 
@@ -11,7 +9,7 @@ def construire_donnees_immuables(
     type_infraction: str,
     lieu: str,
     montant: float,
-    date: str
+    date: str,
 ) -> str:
     """Construit la chaîne de données immuables à signer."""
     return f"{num_permis_chiffre}|{num_permis_hash}|{plaque}|{type_infraction}|{lieu}|{float(montant)}|{date}"
@@ -25,29 +23,35 @@ def preparer_pv(
     plaque: str,
     type_infraction: str,
     lieu: str,
-    montant: float
+    montant: float,
 ) -> dict:
     """Prépare les données d'un PV — signature."""
     date = datetime.now(timezone.utc).isoformat()
 
     # Signer les données immuables
     donnees = construire_donnees_immuables(
-        num_permis_chiffre, num_permis_hash, plaque, type_infraction, lieu, montant, date
+        num_permis_chiffre,
+        num_permis_hash,
+        plaque,
+        type_infraction,
+        lieu,
+        montant,
+        date,
     )
     signature = signer_pv(donnees)
 
     return {
-        "agent_id":           agent_id,
+        "agent_id": agent_id,
         "num_permis_chiffre": num_permis_chiffre,
-        "iv":                 iv,
-        "num_permis_hash":    num_permis_hash,
-        "plaque":             plaque,
-        "type_infraction":    type_infraction,
-        "lieu":               lieu,
-        "montant":            montant,
-        "signature":          signature,
-        "date_creation":      date,
-        "statut":             "en_attente",
+        "iv": iv,
+        "num_permis_hash": num_permis_hash,
+        "plaque": plaque,
+        "type_infraction": type_infraction,
+        "lieu": lieu,
+        "montant": montant,
+        "signature": signature,
+        "date_creation": date,
+        "statut": "en_attente",
     }
 
 
@@ -60,7 +64,7 @@ def verifier_integrite_pv(pv) -> tuple[bool, str]:
         pv.type_infraction,
         pv.lieu,
         pv.montant,
-        pv.date_creation
+        pv.date_creation,
     )
 
     if verifier_signature_pv(donnees, pv.signature):

@@ -6,7 +6,7 @@ import uuid
 from fastapi import Depends
 from fastapi.testclient import TestClient
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 # Utiliser un fichier SQLite temporaire pour que les connexions concurrentes partagent la même base de données
 os.environ["DATABASE_URL"] = "sqlite:///./test_temp.db"
@@ -29,7 +29,7 @@ mock_agent = User(
     email="agent@test.com",
     hashed_password="mocked_password",
     role=Role.AGENT,
-    is_active=True
+    is_active=True,
 )
 
 mock_supervisor = User(
@@ -38,35 +38,38 @@ mock_supervisor = User(
     email="super@test.com",
     hashed_password="mocked_password",
     role=Role.SUPERVISEUR,
-    is_active=True
+    is_active=True,
 )
 
 current_test_user_id = AGENT_ID
 
-def override_current_user(db = Depends(get_db)):
+
+def override_current_user(db=Depends(get_db)):
     user = db.query(User).filter(User.id == current_test_user_id).first()
     return user
+
 
 app.dependency_overrides[get_current_user] = override_current_user
 
 client = TestClient(app)
 
+
 @pytest.fixture(autouse=True)
 def setup_db():
     # Recréer les tables proprement avant chaque test
     Base.metadata.create_all(bind=engine)
-    
+
     # Insérer les utilisateurs fictifs pour les relations de clé étrangère
     db = SessionLocal()
     db.add(mock_agent)
     db.add(mock_supervisor)
     db.commit()
     db.close()
-    
+
     yield
     Base.metadata.drop_all(bind=engine)
     engine.dispose()
-    
+
     # Nettoyer le fichier SQLite de test après chaque test
     if os.path.exists("./test_temp.db"):
         try:
@@ -77,10 +80,10 @@ def setup_db():
 
 def test_api_scenario_complet():
     global current_test_user_id
-    
+
     # ── ÉTAPE 1 : Création d'un PV par un Agent ──────────────────────────────
     current_test_user_id = AGENT_ID
-    
+
     num_permis_chiffre_sim = "Y2hpZmZyZW1lbnRfbm9tYnJlX3Blcm1pc18xMjM0NQ=="
     iv_sim = "MTIzNDU2Nzg5MDEy"
     num_permis_hash_sim = hashlib.sha256(b"SN-2024-12345").hexdigest()
@@ -92,14 +95,14 @@ def test_api_scenario_complet():
         "plaque": "DK-1234-AB",
         "type_infraction": "Excès de vitesse",
         "lieu": "Autoroute",
-        "montant": 15000.0
+        "montant": 15000.0,
     }
 
     response = client.post("/api/pvs/", json=payload)
     print("API Response:", response.json())
     assert response.status_code == 201
     pv_created = response.json()
-    
+
     assert "id" in pv_created
     pv_id = pv_created["id"]
     assert len(pv_id) == 36
@@ -125,7 +128,7 @@ def test_api_scenario_complet():
 
     # ── ÉTAPE 4 : Vérification de l'intégrité par le Superviseur ───────────────
     current_test_user_id = SUPERVISOR_ID
-    
+
     response_int = client.get(f"/api/pvs/{pv_id}/integrite")
     assert response_int.status_code == 200
     integrite = response_int.json()
@@ -148,27 +151,27 @@ def test_api_scenario_complet():
 def test_security_headers():
     response = client.get("/health")
     assert response.status_code == 200
-    
+
     headers = response.headers
-    
+
     # 1. Content-Security-Policy (CSP)
     assert "content-security-policy" in headers
     csp = headers["content-security-policy"]
     assert "default-src 'self'" in csp
     assert "script-src 'self'" in csp
-    
+
     # 2. X-Frame-Options
     assert headers.get("x-frame-options") == "DENY"
-    
+
     # 3. X-Content-Type-Options
     assert headers.get("x-content-type-options") == "nosniff"
-    
+
     # 4. X-XSS-Protection
     assert headers.get("x-xss-protection") == "1; mode=block"
-    
+
     # 5. Referrer-Policy
     assert headers.get("referrer-policy") == "strict-origin-when-cross-origin"
-    
+
     # 6. Permissions-Policy
     assert "permissions-policy" in headers
 

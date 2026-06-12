@@ -4,6 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, field_validator
 from app.models.user import Role
 
+
 def _valider_mot_de_passe(v: str) -> str:
     if len(v) < 12:
         raise ValueError("Minimum 12 caractères.")
@@ -17,6 +18,7 @@ def _valider_mot_de_passe(v: str) -> str:
         raise ValueError("Au moins un caractère spécial requis.")
     return v
 
+
 class UserCreate(BaseModel):
     username: str
     email: EmailStr
@@ -27,6 +29,7 @@ class UserCreate(BaseModel):
     @classmethod
     def force_mot_de_passe_robuste(cls, v):
         return _valider_mot_de_passe(v)
+
 
 class UserOut(BaseModel):
     id: UUID
@@ -39,9 +42,11 @@ class UserOut(BaseModel):
 
     model_config = {"from_attributes": True}
 
+
 class LoginRequest(BaseModel):
     username: str
     password: str
+
 
 class TokenResponse(BaseModel):
     access_token: str

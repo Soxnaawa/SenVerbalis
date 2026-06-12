@@ -3,22 +3,24 @@ import hashlib
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app.core.crypto import (
-    chiffrer, dechiffrer,
-    deriver_cle, signer_pv,
+    chiffrer,
+    dechiffrer,
+    deriver_cle,
+    signer_pv,
     verifier_signature_pv,
-    get_cle_serveur
+    get_cle_serveur,
 )
 from app.services.pvs import (
     construire_donnees_immuables,
     preparer_pv,
-    verifier_integrite_pv
+    verifier_integrite_pv,
 )
 
-
 # ── Tests crypto ──────────────────────────────────────────────────────────
+
 
 def test_chiffrement_dechiffrement():
     cle = os.urandom(32)
@@ -54,6 +56,7 @@ def test_falsification_detectee():
 
 # ── Tests services ────────────────────────────────────────────────────────
 
+
 def test_preparer_pv():
     num_permis_chiffre_sim = "Y2hpZmZyZW1lbnRfbm9tYnJlX3Blcm1pc18xMjM0NQ=="
     iv_sim = "MTIzNDU2Nzg5MDEy"
@@ -67,7 +70,7 @@ def test_preparer_pv():
         plaque="DK-1234-AB",
         type_infraction="Excès de vitesse",
         lieu="Autoroute",
-        montant=15000
+        montant=15000,
     )
     assert "signature" in pv
     assert pv["iv"] == iv_sim
@@ -90,7 +93,7 @@ def test_verifier_integrite_pv_valide():
         plaque="DK-1234-AB",
         type_infraction="Excès de vitesse",
         lieu="Autoroute",
-        montant=15000
+        montant=15000,
     )
 
     class MockPV:

@@ -12,12 +12,18 @@ def creer_pv(
     plaque: str,
     type_infraction: str,
     lieu: str,
-    montant: float
+    montant: float,
 ) -> PV:
     """Crée un PV signé et chiffré en base."""
     donnees = preparer_pv(
-        agent_id, num_permis_chiffre, iv, num_permis_hash,
-        plaque, type_infraction, lieu, montant
+        agent_id,
+        num_permis_chiffre,
+        iv,
+        num_permis_hash,
+        plaque,
+        type_infraction,
+        lieu,
+        montant,
     )
     pv = PV(**donnees)
     db.add(pv)
