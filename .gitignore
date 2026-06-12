@@ -25,3 +25,5 @@ env/
 docs/*.pdf
 docs/*.docx
 docs/*.txt
+docs/*.md
+!docs/security_audit_report.md
