@@ -57,6 +57,26 @@ def maj_statut_pv(db: Session, pv_id: str, nouveau_statut: str) -> PV | None:
     return pv
 
 
+def rechercher_pvs(
+    db: Session,
+    plaque: str | None = None,
+    type_infraction: str | None = None,
+    lieu: str | None = None,
+    statut: str | None = None,
+) -> list[PV]:
+    """Recherche multi-critères de PV."""
+    query = db.query(PV)
+    if plaque:
+        query = query.filter(PV.plaque.ilike(f"%{plaque}%"))
+    if type_infraction:
+        query = query.filter(PV.type_infraction.ilike(f"%{type_infraction}%"))
+    if lieu:
+        query = query.filter(PV.lieu.ilike(f"%{lieu}%"))
+    if statut:
+        query = query.filter(PV.statut == statut)
+    return query.all()
+
+
 def verifier_pv(db: Session, pv_id: str) -> tuple[bool, str]:
     """Vérifie l'intégrité d'un PV."""
     pv = get_pv_by_id(db, pv_id)
