@@ -1,48 +1,51 @@
-from app.core.crypto import (
-    chiffrer, dechiffrer,
-    signer_pv, verifier_signature_pv,
-    get_cle_serveur
-)
+from app.core.crypto import signer_pv, verifier_signature_pv
 from datetime import datetime, timezone
 
 
 def construire_donnees_immuables(
-    num_permis: str,
+    num_permis_chiffre: str,
+    num_permis_hash: str,
     plaque: str,
     type_infraction: str,
     lieu: str,
     montant: float,
-    date: str
+    date: str,
 ) -> str:
     """Construit la chaîne de données immuables à signer."""
-    return f"{num_permis}|{plaque}|{type_infraction}|{lieu}|{float(montant)}|{date}"
+    return f"{num_permis_chiffre}|{num_permis_hash}|{plaque}|{type_infraction}|{lieu}|{float(montant)}|{date}"
 
 
 def preparer_pv(
     agent_id: int,
-    num_permis: str,
+    num_permis_chiffre: str,
+    iv: str,
+    num_permis_hash: str,
     plaque: str,
     type_infraction: str,
     lieu: str,
-    montant: float
+    montant: float,
 ) -> dict:
-    """Prépare les données d'un PV — chiffrement + signature."""
-    cle = get_cle_serveur()
+    """Prépare les données d'un PV — signature.
+    Le chiffrement est fait côté frontend (Zero-Knowledge).
+    Le backend reçoit le permis déjà chiffré et son hash."""
     date = datetime.now(timezone.utc).isoformat()
 
-    # Chiffrer le numéro de permis
-    iv, permis_chiffre = chiffrer(cle, num_permis)
-
-    # Signer les données immuables
     donnees = construire_donnees_immuables(
-        num_permis, plaque, type_infraction, lieu, montant, date
+        num_permis_chiffre,
+        num_permis_hash,
+        plaque,
+        type_infraction,
+        lieu,
+        montant,
+        date,
     )
     signature = signer_pv(donnees)
 
     return {
         "agent_id":           agent_id,
-        "num_permis_chiffre": permis_chiffre,
+        "num_permis_chiffre": num_permis_chiffre,
         "iv":                 iv,
+        "num_permis_hash":    num_permis_hash,
         "plaque":             plaque,
         "type_infraction":    type_infraction,
         "lieu":               lieu,
@@ -55,20 +58,14 @@ def preparer_pv(
 
 def verifier_integrite_pv(pv) -> tuple[bool, str]:
     """Vérifie qu'un PV n'a pas été modifié depuis sa création."""
-    cle = get_cle_serveur()
-
-    try:
-        num_permis = dechiffrer(cle, pv.iv, pv.num_permis_chiffre)
-    except Exception:
-        return False, "Impossible de déchiffrer le numéro de permis"
-
     donnees = construire_donnees_immuables(
-        num_permis,
+        pv.num_permis_chiffre,
+        pv.num_permis_hash,
         pv.plaque,
         pv.type_infraction,
         pv.lieu,
         pv.montant,
-        pv.date_creation
+        pv.date_creation,
     )
 
     if verifier_signature_pv(donnees, pv.signature):
