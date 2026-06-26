@@ -20,6 +20,7 @@ Base.metadata.create_all(bind=engine)
 # Appliquer les triggers de sécurité en base de données
 from app.core.triggers import appliquer_triggers
 from app.db import SessionLocal
+
 db = SessionLocal()
 try:
     appliquer_triggers(db)
@@ -63,6 +64,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         )
         return response
 
+
 app.add_middleware(SecurityHeadersMiddleware)
 
 app.add_middleware(
@@ -73,17 +75,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logging.getLogger("senverbalis").error("Erreur interne: %s", exc, exc_info=True)
-    return JSONResponse(status_code=500, content={"detail": "Erreur interne du serveur."})
+    return JSONResponse(
+        status_code=500, content={"detail": "Erreur interne du serveur."}
+    )
+
 
 app.include_router(auth_router)
 app.include_router(pvs_router)
 
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
 
 def custom_openapi():
     if app.openapi_schema:
@@ -105,5 +113,6 @@ def custom_openapi():
             method["security"] = [{"BearerAuth": []}]
     app.openapi_schema = schema
     return schema
+
 
 app.openapi = custom_openapi
