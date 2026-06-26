@@ -87,7 +87,7 @@ npm run dev
 ## 🔑 Accès et Comptes de Démonstration
 
 Une fois l'application démarrée, ouvrez [http://localhost:5173](http://localhost:5173) :
-*   **Administrateur** : `admin` / `AdminSenverbalis2026!` (pour la création d'agents/superviseurs).
+*   **Administrateur** : `admin` / `Admin@Senverbalis2026!` (pour la création d'agents/superviseurs).
 *   **Espace Citoyen (Sans authentification)** : Accessible depuis l'écran de connexion ou directement sur [http://localhost:5173/#/citoyen/consulter](http://localhost:5173/#/citoyen/consulter).
 
 ---
