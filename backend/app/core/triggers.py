@@ -46,7 +46,7 @@ SQLITE_TRIGGERS = [
     BEGIN
         SELECT RAISE(FAIL, 'Modification des donnees physiques du PV interdite. Seul le statut peut etre modifie.');
     END;
-    """
+    """,
 ]
 
 # ── PostgreSQL Triggers DDL ───────────────────────────────────────────────
@@ -121,7 +121,7 @@ POSTGRES_TRIGGERS = [
     CREATE TRIGGER pvs_no_update
     BEFORE UPDATE ON pvs
     FOR EACH ROW EXECUTE FUNCTION block_pv_changes();
-    """
+    """,
 ]
 
 
@@ -129,9 +129,9 @@ def appliquer_triggers(db: Session):
     """Détecte la base de données et applique les triggers correspondants."""
     bind = db.get_bind()
     dialect_name = bind.dialect.name
-    
+
     logger.info("Application des triggers SQL de sécurité (Dialect: %s)", dialect_name)
-    
+
     try:
         if dialect_name == "sqlite":
             for sql in SQLITE_TRIGGERS:
@@ -144,7 +144,10 @@ def appliquer_triggers(db: Session):
             db.commit()
             logger.info("✅ Triggers PostgreSQL appliqués avec succès.")
         else:
-            logger.warning("⚠️ Dialecte de base de données non supporté pour les triggers de sécurité : %s", dialect_name)
+            logger.warning(
+                "⚠️ Dialecte de base de données non supporté pour les triggers de sécurité : %s",
+                dialect_name,
+            )
     except Exception as e:
         db.rollback()
         logger.error("❌ Échec de l'application des triggers de sécurité : %s", e)

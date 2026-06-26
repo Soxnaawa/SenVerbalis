@@ -121,6 +121,7 @@ def test_cle_serveur_32_octets():
 
 # ── Tests Triggers de Sécurité SQL ────────────────────────────────────────
 
+
 def test_sqlite_triggers_audit_logs():
     from app.db import SessionLocal, Base, engine
     from app.models.audit_log import AuditLog
@@ -137,7 +138,7 @@ def test_sqlite_triggers_audit_logs():
         actor="test_user",
         action="TEST_ACTION",
         detail="Détails du test de triggers",
-        ip_address="127.0.0.1"
+        ip_address="127.0.0.1",
     )
     db.add(log)
     db.commit()
@@ -156,7 +157,7 @@ def test_sqlite_triggers_audit_logs():
         db.commit()
     assert "journal d'audit interdite" in str(exc_info.value)
     db.rollback()
-    
+
     db.close()
 
 
@@ -198,7 +199,7 @@ def test_sqlite_triggers_pvs():
         montant=6000.0,
         signature="signature_test_hmac",
         date_creation="2026-06-26",
-        statut="en_attente"
+        statut="en_attente",
     )
     db.add(pv)
     db.commit()
@@ -224,4 +225,3 @@ def test_sqlite_triggers_pvs():
     db.rollback()
 
     db.close()
-
