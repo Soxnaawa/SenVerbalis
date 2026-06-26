@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy.orm import Session
 from typing import Optional
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.schemas.pv import PVCreate, PVResponse, PVStatutUpdate, PVIntegriteResponse
 from app.crud import pvs as crud_pvs
@@ -10,6 +12,7 @@ from app.models.user import Role, User
 from app.crud import audit as audit_crud
 
 router = APIRouter(prefix="/api/pvs", tags=["PVs"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post(
@@ -54,10 +57,13 @@ def creer_pv(
     dependencies=[Depends(require_role(Role.AGENT))],
 )
 def mes_pvs(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Retourne uniquement les PV de l'agent connecté."""
-    return crud_pvs.get_pvs_agent(db, current_user.id)
+    return crud_pvs.get_pvs_agent(db, current_user.id, skip=skip, limit=limit)
 
 
 @router.get(
@@ -66,10 +72,13 @@ def mes_pvs(
     dependencies=[Depends(require_role(Role.SUPERVISEUR))],
 )
 def tous_les_pvs(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Retourne tous les PV. Réservé au superviseur."""
-    return crud_pvs.get_tous_pvs(db)
+    return crud_pvs.get_tous_pvs(db, skip=skip, limit=limit)
 
 
 @router.get(
@@ -83,13 +92,22 @@ def rechercher_pvs(
     type_infraction: Optional[str] = Query(None, min_length=1, max_length=100),
     lieu: Optional[str] = Query(None, min_length=1, max_length=200),
     statut: Optional[str] = Query(None, pattern="^(en_attente|reglee|contestee)$"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Recherche multi-critères de PV. Réservé au superviseur (EF-09)."""
     results = crud_pvs.rechercher_pvs(
-        db, plaque=plaque, type_infraction=type_infraction, lieu=lieu, statut=statut
+        db,
+        plaque=plaque,
+        type_infraction=type_infraction,
+        lieu=lieu,
+        statut=statut,
+        skip=skip,
+        limit=limit,
     )
+
     ip = request.client.host if request.client else "unknown"
     audit_crud.log(
         db,
@@ -182,7 +200,19 @@ def verifier_integrite(
     return PVIntegriteResponse(pv_id=pv_id, integre=integre, message=message)
 
 
+@router.get(
+    "/superviseur/stats",
+    dependencies=[Depends(require_role(Role.SUPERVISEUR))],
+)
+def get_stats(db: Session = Depends(get_db)):
+    """Retourne des statistiques globales sur les PV pour le superviseur."""
+    return crud_pvs.get_stats_pvs(db)
+
+
 @router.get("/citoyen/{num_permis_hash}", response_model=list[PVResponse])
-def get_pvs_citoyen(num_permis_hash: str, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def get_pvs_citoyen(
+    num_permis_hash: str, request: Request, db: Session = Depends(get_db)
+):
     """Retourne les PV d'un citoyen par le hash de son permis."""
     return crud_pvs.get_pvs_citoyen(db, num_permis_hash)

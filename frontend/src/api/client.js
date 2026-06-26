@@ -142,6 +142,27 @@ export const api = {
     });
   },
 
+  reactivateUser: async (username) => {
+    return request(`/api/auth/users/${username}/reactiver`, {
+      method: "POST",
+    });
+  },
+
+  changePassword: async (old_password, new_password) => {
+    return request("/api/auth/users/me/password", {
+      method: "PATCH",
+      body: JSON.stringify({ old_password, new_password }),
+    });
+  },
+
+  getAuditLogs: async (skip = 0, limit = 50) => {
+    return request(`/api/auth/audit-logs?skip=${skip}&limit=${limit}`);
+  },
+
+  getDashboardStats: async () => {
+    return request("/api/pvs/superviseur/stats");
+  },
+
   getCitoyenPVs: async (numPermisHash) => {
     const response = await fetch(`/api/pvs/citoyen/${numPermisHash}`);
     if (!response.ok) {
@@ -155,4 +176,5 @@ export const api = {
     return response.json();
   }
 };
+
 

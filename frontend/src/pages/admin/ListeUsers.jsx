@@ -75,6 +75,17 @@ const ListeUsers = () => {
     }
   };
 
+  const handleReactivateUser = async (username) => {
+    try {
+      await api.reactivateUser(username);
+      setUsers(prev => prev.map(u => u.username === username ? { ...u, is_active: true } : u));
+      showNotification(`Le compte de ${username} a été réactivé avec succès.`, 'success');
+    } catch (err) {
+      showNotification(`Erreur : ${err.message}`, 'danger');
+    }
+  };
+
+
   // Stats calculations
   const totalCount = users.length;
   const activeCount = users.filter(u => u.is_active).length;
@@ -344,8 +355,24 @@ const ListeUsers = () => {
                           Désactiver
                         </button>
                       ) : (
-                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Aucune action</span>
+                        <button
+                          onClick={() => handleReactivateUser(userObj.username)}
+                          className="btn btn-secondary"
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            height: '32px',
+                            color: '#10b981',
+                            borderColor: 'rgba(16, 185, 129, 0.15)'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.05)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          <UserCheck size={13} style={{ marginRight: '4px' }} />
+                          Réactiver
+                        </button>
                       )}
+
                     </td>
                   </tr>
                 ))}

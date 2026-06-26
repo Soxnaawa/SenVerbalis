@@ -2,6 +2,7 @@ import uuid
 import enum
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, DateTime, Enum as PgEnum
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.db import Base
 
@@ -26,3 +27,5 @@ class User(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
     created_by = Column(String(80), nullable=True)
+
+    pvs = relationship("PV", back_populates="agent")

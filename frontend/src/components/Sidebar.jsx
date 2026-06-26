@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { FileText, PlusCircle, LogOut, Users, UserPlus } from 'lucide-react';
+import { FileText, PlusCircle, LogOut, Users, UserPlus, BarChart2, Activity } from 'lucide-react';
 
 const Sidebar = ({ currentRoute }) => {
   const { user, role, logout } = useContext(AuthContext);
@@ -23,6 +23,11 @@ const Sidebar = ({ currentRoute }) => {
       case 'superviseur':
         return [
           {
+            label: "Tableau de Bord",
+            route: "#/superviseur/dashboard",
+            icon: <BarChart2 size={18} />
+          },
+          {
             label: "Tous les PVs",
             route: "#/superviseur/pvs",
             icon: <FileText size={18} />
@@ -39,8 +44,14 @@ const Sidebar = ({ currentRoute }) => {
             label: "Nouvel Utilisateur",
             route: "#/admin/creer-user",
             icon: <UserPlus size={18} />
+          },
+          {
+            label: "Journal d'Audit",
+            route: "#/admin/audit",
+            icon: <Activity size={18} />
           }
         ];
+
       default:
         return [];
     }

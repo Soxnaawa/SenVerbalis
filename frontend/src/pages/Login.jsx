@@ -10,6 +10,14 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
+  const [expiredMsg, setExpiredMsg] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem("sessionExpired") === "true") {
+      setExpiredMsg(true);
+      localStorage.removeItem("sessionExpired");
+    }
+  }, []);
 
   // If already authenticated, redirect to appropriate page
   useEffect(() => {
@@ -27,6 +35,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setExpiredMsg(false);
     setShake(false);
 
     if (!username.trim() || !password.trim()) {
@@ -97,6 +106,22 @@ const Login = () => {
             </p>
           </div>
 
+          {/* Session Expired Alert */}
+          {expiredMsg && (
+            <div style={{
+              padding: '12px 14px',
+              borderRadius: '8px',
+              backgroundColor: 'rgba(254, 203, 0, 0.1)',
+              border: '1px solid rgba(254, 203, 0, 0.2)',
+              color: 'var(--color-accent-yellow)',
+              fontSize: '13px',
+              marginBottom: '20px',
+              textAlign: 'center'
+            }}>
+              Votre session a expiré après 15 minutes d'inactivité.
+            </div>
+          )}
+
           {/* Form Error */}
           {(error || authError) && (
             <div style={{
@@ -112,6 +137,7 @@ const Login = () => {
               {error || authError}
             </div>
           )}
+
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

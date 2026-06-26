@@ -10,7 +10,10 @@ import MesPVs from './pages/agent/MesPVs';
 import TousLesPVs from './pages/superviseur/TousLesPVs';
 import ListeUsers from './pages/admin/ListeUsers';
 import CreerUser from './pages/admin/CreerUser';
+import AuditLogs from './pages/admin/AuditLogs';
+import DashboardStats from './pages/superviseur/DashboardStats';
 import ConsulterPVs from './pages/citoyen/ConsulterPVs';
+
 
 // Router component that maps the current window.location.hash to the proper components
 const AppRouter = () => {
@@ -83,6 +86,15 @@ const AppRouter = () => {
         </ProtectedRoute>
       );
 
+    case currentRoute === '/superviseur/dashboard':
+      return (
+        <ProtectedRoute allowedRoles={['superviseur']}>
+          <Layout currentRoute={currentRoute} title="Tableau de Bord">
+            <DashboardStats />
+          </Layout>
+        </ProtectedRoute>
+      );
+
     // Citizen Pages
     case currentRoute === '/citoyen/consulter':
       return <ConsulterPVs />;
@@ -105,6 +117,16 @@ const AppRouter = () => {
           </Layout>
         </ProtectedRoute>
       );
+
+    case currentRoute === '/admin/audit':
+      return (
+        <ProtectedRoute allowedRoles={['admin']}>
+          <Layout currentRoute={currentRoute} title="Journal d'Audit">
+            <AuditLogs />
+          </Layout>
+        </ProtectedRoute>
+      );
+
 
     // 4. Fallbacks / Public Login Page
     case currentRoute === '/login':

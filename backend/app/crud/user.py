@@ -43,3 +43,19 @@ def desactiver_user(db: Session, username: str) -> User | None:
         db.commit()
         db.refresh(user)
     return user
+
+
+def reactiver_user(db: Session, username: str) -> User | None:
+    user = get_by_username(db, username)
+    if user:
+        user.is_active = True
+        db.commit()
+        db.refresh(user)
+    return user
+
+
+def mettre_a_jour_password(db: Session, user: User, plain_password: str) -> User:
+    user.hashed_password = hasher_mot_de_passe(plain_password)
+    db.commit()
+    db.refresh(user)
+    return user

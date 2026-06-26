@@ -5,6 +5,8 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 
+from app.core.config import settings
+
 
 def chiffrer(cle: bytes, donnee: str) -> tuple[bytes, bytes]:
     """Chiffre une donnée avec AES-256-GCM."""
@@ -32,15 +34,13 @@ def deriver_cle(mot_de_passe: str, sel: bytes) -> bytes:
 
 
 def get_cle_serveur() -> bytes:
-    """Retourne la clé serveur depuis les variables d'environnement."""
-    cle_raw = os.environ.get("SERVER_AES_KEY", "senverbalis_cle_serveur_2026")
-    return hashlib.sha256(cle_raw.encode()).digest()
+    """Retourne la clé serveur depuis la configuration."""
+    return hashlib.sha256(settings.SERVER_AES_KEY.encode()).digest()
 
 
 def get_cle_hmac() -> bytes:
-    """Retourne la clé HMAC depuis les variables d'environnement."""
-    cle_raw = os.environ.get("SERVER_HMAC_KEY", "senverbalis_hmac_key_2026")
-    return hashlib.sha256(cle_raw.encode()).digest()
+    """Retourne la clé HMAC depuis la configuration."""
+    return hashlib.sha256(settings.SERVER_HMAC_KEY.encode()).digest()
 
 
 def signer_pv(donnees_pv: str) -> str:

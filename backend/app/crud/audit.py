@@ -20,3 +20,14 @@ def log(
         )
     )
     db.commit()
+
+
+def get_all(db: Session, skip: int = 0, limit: int = 50) -> list[AuditLog]:
+    """Retourne la liste des logs d'audit triés par date décroissante."""
+    return (
+        db.query(AuditLog)
+        .order_by(AuditLog.timestamp.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )

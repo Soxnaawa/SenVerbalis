@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 15
+    SERVER_AES_KEY: str = "senverbalis_cle_serveur_2026"
+    SERVER_HMAC_KEY: str = "senverbalis_hmac_key_2026"
 
     @property
     def DATABASE_URL(self) -> str:

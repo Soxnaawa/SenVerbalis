@@ -49,9 +49,11 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       inactivityTimerRef.current = setTimeout(() => {
         console.warn("Session expirée pour cause d'inactivité (15 minutes).");
+        localStorage.setItem("sessionExpired", "true");
         logout();
       }, INACTIVITY_TIMEOUT_MS);
     }
+
   }, [token, logout]);
 
   // Event listeners to detect activity

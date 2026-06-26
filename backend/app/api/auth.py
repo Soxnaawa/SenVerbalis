@@ -11,7 +11,14 @@ from app.core.dependencies import get_current_user, require_role
 from app.crud import user as user_crud
 from app.crud import audit as audit_crud
 from app.models.user import Role, User
-from app.schemas.user import LoginRequest, TokenResponse, UserCreate, UserOut
+from app.schemas.user import (
+    LoginRequest,
+    TokenResponse,
+    UserCreate,
+    UserOut,
+    PasswordChangeRequest,
+)
+from app.schemas.audit import AuditLogResponse
 
 logger = logging.getLogger("senverbalis.api.auth")
 router = APIRouter(prefix="/api/auth", tags=["Authentification"])
@@ -139,3 +146,66 @@ def deactivate_user(
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post(
+    "/users/{username}/reactiver",
+    status_code=200,
+    dependencies=[Depends(require_role(Role.ADMIN))],
+)
+def reactivate_user(
+    username: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    user = user_crud.reactiver_user(db, username)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+    audit_crud.log(
+        db, actor=current_user.username, action="USER_ACTIVATED", target=username
+    )
+    return {"message": f"Compte '{username}' réactivé."}
+
+
+@router.patch(
+    "/users/me/password",
+    status_code=200,
+)
+def change_password(
+    payload: PasswordChangeRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    ip = request.client.host if request.client else "unknown"
+    if not verifier_mot_de_passe(payload.old_password, current_user.hashed_password):
+        audit_crud.log(
+            db,
+            actor=current_user.username,
+            action="PASSWORD_CHANGE_FAILED",
+            detail="Ancien mot de passe incorrect",
+            ip_address=ip,
+        )
+        raise HTTPException(status_code=400, detail="Ancien mot de passe incorrect.")
+
+    user_crud.mettre_a_jour_password(db, current_user, payload.new_password)
+    audit_crud.log(
+        db,
+        actor=current_user.username,
+        action="PASSWORD_CHANGED",
+        ip_address=ip,
+    )
+    return {"message": "Mot de passe mis à jour avec succès."}
+
+
+@router.get(
+    "/audit-logs",
+    response_model=list[AuditLogResponse],
+    dependencies=[Depends(require_role(Role.ADMIN))],
+)
+def list_audit_logs(
+    skip: int = 0,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+):
+    return audit_crud.get_all(db, skip=skip, limit=limit)

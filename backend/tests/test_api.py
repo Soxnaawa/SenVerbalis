@@ -21,26 +21,9 @@ from app.core.dependencies import get_current_user
 
 AGENT_ID = uuid.uuid4()
 SUPERVISOR_ID = uuid.uuid4()
+ADMIN_ID = uuid.uuid4()
 
 # Utilisateurs mockés
-mock_agent = User(
-    id=AGENT_ID,
-    username="agent_test",
-    email="agent@test.com",
-    hashed_password="mocked_password",
-    role=Role.AGENT,
-    is_active=True,
-)
-
-mock_supervisor = User(
-    id=SUPERVISOR_ID,
-    username="super_test",
-    email="super@test.com",
-    hashed_password="mocked_password",
-    role=Role.SUPERVISEUR,
-    is_active=True,
-)
-
 current_test_user_id = AGENT_ID
 
 
@@ -64,12 +47,42 @@ def setup_db():
     from app.core.triggers import appliquer_triggers
 
     appliquer_triggers(db)
-    db.add(mock_agent)
-    db.add(mock_supervisor)
+
+    agent = User(
+        id=AGENT_ID,
+        username="agent_test",
+        email="agent@test.com",
+        hashed_password="mocked_password",
+        role=Role.AGENT,
+        is_active=True,
+    )
+
+    supervisor = User(
+        id=SUPERVISOR_ID,
+        username="super_test",
+        email="super@test.com",
+        hashed_password="mocked_password",
+        role=Role.SUPERVISEUR,
+        is_active=True,
+    )
+
+    admin = User(
+        id=ADMIN_ID,
+        username="admin_test",
+        email="admin@test.com",
+        hashed_password="mocked_password",
+        role=Role.ADMIN,
+        is_active=True,
+    )
+
+    db.add(agent)
+    db.add(supervisor)
+    db.add(admin)
     db.commit()
     db.close()
 
     yield
+
     Base.metadata.drop_all(bind=engine)
     engine.dispose()
 
@@ -185,3 +198,46 @@ def test_rate_limiting_login():
     responses = [client.post("/api/auth/login", json=payload) for _ in range(7)]
     status_codes = [r.status_code for r in responses]
     assert 429 in status_codes
+
+
+def test_new_features():
+    global current_test_user_id
+
+    # ── ÉTAPE 1 : Désactivation et Réactivation par l'Admin ───────────────────
+    current_test_user_id = ADMIN_ID
+
+    # Désactiver
+    resp_deact = client.delete("/api/auth/users/agent_test")
+    assert resp_deact.status_code == 200
+
+    # Vérifier inactif
+    db = SessionLocal()
+    agent_db = db.query(User).filter(User.username == "agent_test").first()
+    assert agent_db.is_active is False
+    db.close()
+
+    # Réactiver
+    resp_react = client.post("/api/auth/users/agent_test/reactiver")
+    assert resp_react.status_code == 200
+
+    # Vérifier actif
+    db = SessionLocal()
+    agent_db = db.query(User).filter(User.username == "agent_test").first()
+    assert agent_db.is_active is True
+    db.close()
+
+    # ── ÉTAPE 2 : Récupération des logs d'audit par l'Admin ────────────────────
+    resp_logs = client.get("/api/auth/audit-logs")
+    assert resp_logs.status_code == 200
+    logs = resp_logs.json()
+    assert len(logs) >= 2  # Au moins USER_DEACTIVATED et USER_ACTIVATED
+
+    # ── ÉTAPE 3 : Statistiques par le Superviseur ──────────────────────────────
+    current_test_user_id = SUPERVISOR_ID
+    resp_stats = client.get("/api/pvs/superviseur/stats")
+    assert resp_stats.status_code == 200
+    stats = resp_stats.json()
+    assert "total" in stats
+    assert "regles" in stats
+    assert "montant_total" in stats
+    assert "infraction_distribution" in stats

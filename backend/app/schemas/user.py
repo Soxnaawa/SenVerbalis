@@ -53,3 +53,13 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int
     role: Role
+
+
+class PasswordChangeRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def force_mot_de_passe_robuste(cls, v):
+        return _valider_mot_de_passe(v)

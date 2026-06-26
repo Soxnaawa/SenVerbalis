@@ -1,5 +1,6 @@
 import uuid
 from sqlalchemy import Column, String, Float, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.db import Base
 
@@ -19,3 +20,9 @@ class PV(Base):
     signature = Column(String, nullable=False)
     date_creation = Column(String, nullable=False)
     statut = Column(String, default="en_attente")
+
+    agent = relationship("User", back_populates="pvs")
+
+    @property
+    def agent_username(self) -> str:
+        return self.agent.username if self.agent else "Inconnu"
