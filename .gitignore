@@ -10,6 +10,10 @@ env/
 # Base de données
 *.db
 
+# Archives de livraison
+*.zip
+senverbalis_delivery_final.zip
+
 # Variables d'environnement
 .env
 .server_keys
@@ -27,3 +31,7 @@ docs/*.docx
 docs/*.txt
 docs/*.md
 !docs/security_audit_report.md
+!docs/document_assurance.md
+!docs/exigences_et_avancement.md
+!docs/instructions_installation.md
+!docs/rapport_final.md

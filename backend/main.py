@@ -17,6 +17,15 @@ from app.api.pvs import router as pvs_router
 
 Base.metadata.create_all(bind=engine)
 
+# Appliquer les triggers de sécurité en base de données
+from app.core.triggers import appliquer_triggers
+from app.db import SessionLocal
+db = SessionLocal()
+try:
+    appliquer_triggers(db)
+finally:
+    db.close()
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",

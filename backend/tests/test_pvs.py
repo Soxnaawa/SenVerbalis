@@ -117,3 +117,111 @@ def test_verifier_integrite_pv_valide():
 def test_cle_serveur_32_octets():
     cle = get_cle_serveur()
     assert len(cle) == 32
+
+
+# ── Tests Triggers de Sécurité SQL ────────────────────────────────────────
+
+def test_sqlite_triggers_audit_logs():
+    from app.db import SessionLocal, Base, engine
+    from app.models.audit_log import AuditLog
+    from app.core.triggers import appliquer_triggers
+    from sqlalchemy.exc import OperationalError, IntegrityError
+
+    # S'assurer que la base de test est propre et les triggers appliqués
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    appliquer_triggers(db)
+
+    # 1. Insertion de log
+    log = AuditLog(
+        actor="test_user",
+        action="TEST_ACTION",
+        detail="Détails du test de triggers",
+        ip_address="127.0.0.1"
+    )
+    db.add(log)
+    db.commit()
+    log_id = log.id
+
+    # 2. Tentative de modification (UPDATE)
+    log.actor = "user_malicieux"
+    with pytest.raises((OperationalError, IntegrityError)) as exc_info:
+        db.commit()
+    assert "journal d'audit interdite" in str(exc_info.value)
+    db.rollback()
+
+    # 3. Tentative de suppression (DELETE)
+    db.delete(log)
+    with pytest.raises((OperationalError, IntegrityError)) as exc_info:
+        db.commit()
+    assert "journal d'audit interdite" in str(exc_info.value)
+    db.rollback()
+    
+    db.close()
+
+
+def test_sqlite_triggers_pvs():
+    from app.db import SessionLocal, Base, engine
+    from app.models.pv import PV
+    from app.models.user import User, Role
+    from app.core.triggers import appliquer_triggers
+    from sqlalchemy.exc import OperationalError, IntegrityError
+    import uuid
+
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    appliquer_triggers(db)
+
+    # 1. Insertion de l'agent
+    agent_id = uuid.uuid4()
+    agent = User(
+        id=agent_id,
+        username="agent_trigger_test",
+        email="agent_trigger@test.com",
+        hashed_password="mocked_password",
+        role=Role.AGENT,
+        is_active=True,
+    )
+    db.add(agent)
+    db.commit()
+
+    # 2. Insertion de PV
+    pv = PV(
+        id=str(uuid.uuid4()),
+        agent_id=agent_id,
+        num_permis_chiffre="permis_chiffre_test",
+        iv="iv_test_12_octets",
+        num_permis_hash="hash_test_sha256_length_64_characters_long_lajdklsajdklsajdklsa",
+        plaque="AA-123-BB",
+        type_infraction="Feu rouge",
+        lieu="Dakar",
+        montant=6000.0,
+        signature="signature_test_hmac",
+        date_creation="2026-06-26",
+        statut="en_attente"
+    )
+    db.add(pv)
+    db.commit()
+
+    # 2. Tentative de modification physique frauduleuse (ex: montant)
+    pv.montant = 0.0
+    with pytest.raises((OperationalError, IntegrityError)) as exc_info:
+        db.commit()
+    assert "donnees physiques" in str(exc_info.value)
+    db.rollback()
+
+    # 3. Modification autorisée (uniquement le statut)
+    pv.statut = "reglee"
+    db.commit()  # Doit passer sans lever d'exception
+    db.refresh(pv)
+    assert pv.statut == "reglee"
+
+    # 4. Tentative de suppression (DELETE)
+    db.delete(pv)
+    with pytest.raises((OperationalError, IntegrityError)) as exc_info:
+        db.commit()
+    assert "PV interdite" in str(exc_info.value)
+    db.rollback()
+
+    db.close()
+

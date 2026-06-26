@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # 1. Base de données PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: senverbalis_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-senverbalis_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-CHANGEZ_MOI_mot_de_passe_securise}
+      POSTGRES_DB: senverbalis
+    ports:
+      - "127.0.0.1:5432:5432" # Uniquement lié à localhost pour la sécurité
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - senverbalis_net
+
+  # 2. Backend API (FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: senverbalis_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-senverbalis_user}:${DB_PASSWORD:-CHANGEZ_MOI_mot_de_passe_securise}@db:5432/senverbalis
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-CHANGEZ_MOI_cle_jwt_securisee_64_caracteres_minimum}
+      - SERVER_AES_KEY=${SERVER_AES_KEY:-senverbalis_cle_serveur_2026}
+      - SERVER_HMAC_KEY=${SERVER_HMAC_KEY:-senverbalis_hmac_key_2026}
+    ports:
+      - "127.0.0.1:8000:8000" # Expose l'API sur localhost:8000
+    depends_on:
+      - db
+    networks:
+      - senverbalis_net
+
+  # 3. Frontend (React + Vite served via Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: senverbalis_frontend
+    restart: always
+    ports:
+      - "127.0.0.1:5173:5173" # Expose le serveur dev React sur localhost:5173
+    depends_on:
+      - backend
+    networks:
+      - senverbalis_net
+
+volumes:
+  postgres_data:
+
+networks:
+  senverbalis_net:
+    driver: bridge

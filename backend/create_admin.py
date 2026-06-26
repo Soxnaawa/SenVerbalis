@@ -8,7 +8,9 @@ from app.models.user import Role
 
 Base.metadata.create_all(bind=engine)
 
+from app.core.triggers import appliquer_triggers
 db = SessionLocal()
+appliquer_triggers(db)
 if get_by_username(db, "admin"):
     print("⚠️  Un compte admin existe déjà.")
 else:

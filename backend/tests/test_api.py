@@ -61,6 +61,8 @@ def setup_db():
 
     # Insérer les utilisateurs fictifs pour les relations de clé étrangère
     db = SessionLocal()
+    from app.core.triggers import appliquer_triggers
+    appliquer_triggers(db)
     db.add(mock_agent)
     db.add(mock_supervisor)
     db.commit()
